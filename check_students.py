@@ -196,7 +196,6 @@ def main(args):
 
     
     if num_args >= 4:
-        print(num_args)
         solution_distance = min(max(1,int(args[3])),100)
     
     print(" We run:\n  students_file_name='%s'\n  url='%s'\n  solution_distance=%d\n" % (
