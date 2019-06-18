@@ -175,7 +175,7 @@ def main(args):
     global url_prefix
 
     num_args=len(args)
-    if num_args < 2:
+    if num_args < 3:
         print("""
     This program parsing plagiarism analisys results.
       It requires: 
@@ -194,8 +194,10 @@ def main(args):
     students_file_name = args[1]
     url= args[2]
 
-    if num_args >= 3:
-       solution_distance = min(max(1,int(args[3])),100)
+    
+    if num_args >= 4:
+        print(num_args)
+        solution_distance = min(max(1,int(args[3])),100)
     
     print(" We run:\n  students_file_name='%s'\n  url='%s'\n  solution_distance=%d\n" % (
             students_file_name,
