@@ -41,7 +41,7 @@ class Student:
         Create new html file with full_name as pattern
         """
         if len(self.tasks) == 0:
-            print ("For student '%s' there nothing to write" % (self.full_name))
+            print ("  For student '%s' there nothing to write" % (self.full_name))
             return
 
         file_name = "stud_%s.html" % (self.full_name.replace(" ","_"))
@@ -93,7 +93,7 @@ class matching:
             "%s/%s" % (url_prefix, self.diff_url),
             self.similarity))
 
-def process_task(stream, students):
+def process_task(stream, students, distance = 100):
     task_name="unknown"
 
     for line in stream:
@@ -111,12 +111,18 @@ def process_task(stream, students):
             if line.find(student.full_name) == -1:
                 continue
             
-            student_matching = matching()
 
             items=line.split("</td><td>")
             if items[-1][:-11] == "&nbsp;":
                 continue
+            
+            simil=int(items[8])
+            if simil > distance:
+                continue
 
+            student_matching = matching()
+
+            student_matching.similarity = simil
 
             diff_url = items[-1][9:-21]
             student_matching.diff_url=diff_url
@@ -138,7 +144,6 @@ def process_task(stream, students):
                 student_matching.other_datetime     = items[3]
                 student_matching.other_student_name = items[2]
             
-            student_matching.similarity = int(items[8])
             
             if task_name in student.tasks:
                 student.tasks[task_name].append(student_matching)
@@ -169,46 +174,64 @@ def create_file_list(url):
 def main(args):
     global url_prefix
 
-    url= "https://ejudge.ru/MW6Z8TtquR1gBORo/index.html"
+    num_args=len(args)
+    if num_args < 2:
+        print("""
+    This program parsing plagiarism analisys results.
+      It requires: 
+           
+           file_name with names of students in first argument
+           (each name on new line) then
+
+           url with main page of plagiarism analisys results.
+
+           maximal distance between solutions of students in [1 .. 100]. by default 100.
+
+     """)
+        return 1
+
+    solution_distance = 100
+    students_file_name = args[1]
+    url= args[2]
+
+    if num_args >= 3:
+       solution_distance = min(max(1,int(args[3])),100)
+    
+    print(" We run:\n  students_file_name='%s'\n  url='%s'\n  solution_distance=%d\n" % (
+            students_file_name,
+            url,
+            solution_distance))
+
     url_prefix=url[0:url.rfind('/')]
     
     file_list = create_file_list(url)
-    print(file_list)
+    #print(file_list)
 
+    studs_file = open(students_file_name, "r", encoding='utf8')
     students=list()
-    stud = Student(full_name="Тараканов Игорь")
-    students.append(stud)
-    stud=Student(full_name="Косач (Мовтян) Денис")
-    students.append(stud)
+    for name in studs_file:
+        name=name.strip()
+        if name == "":
+            continue
+        
+        stud=Student(full_name=name)
+        students.append(stud)
+    studs_file.close()
 
     for task_file in  file_list:
         f=urllib.request.urlopen("%s/%s" % (url_prefix, task_file) )
-        process_task(f,students)
+        print(" Process '%s' " % task_file )
+        process_task(f,students,solution_distance)
         f.close()
+        print("    finished")
+    
+    print("\nAll files processed, now printing\n")
 
     for student in students:
         student.print_to_html()
+        print(" Print for: '%s' finished" % (student.full_name))
 
-
-    return 100
-
-    if len(args) < 2:
-        print("Bad number of arguments: student directory")
-        return 1
-
-    path = args[2]
-    student = args[1]
-    
-    files=os.listdir(path)
-    path += "/"
-    
-
-    for file_name in files:
-        #print(file_name)
-        if file_name[-6:] == "l.html":
-            process(file_name,student,path+file_name)
-    
-    print("</table></body></html>")
+    print("\nAll students printed.\n\n")
 
     return 0
 
