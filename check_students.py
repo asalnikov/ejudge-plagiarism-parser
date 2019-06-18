@@ -65,9 +65,7 @@ class Student:
 class matching:
     
     _html_print_str=\
-            """
-    <tr><td> (%s) %s : %s </td><td> %s <td> (%s) %s : %s </td><td> <a href="%s"> diff </a> (size: %d) </td></tr>
-"""
+            """<tr><td> (%s) %s : %s </td><td> %s </td><td> (%s) %s : %s </td><td> <a href="%s"> diff </a> (size: %d) </td></tr>\n"""
 
     def __init__(self):
         self.student_contest_id = "wrong"
@@ -116,9 +114,11 @@ def process_task(stream, students):
             student_matching = matching()
 
             items=line.split("</td><td>")
-            diff_url = items[-1][9:-21]
-            if diff_url == "&nbsp;":
+            if items[-1][:-11] == "&nbsp;":
                 continue
+
+
+            diff_url = items[-1][9:-21]
             student_matching.diff_url=diff_url
             
             if items[2].find(student.full_name) != -1:
@@ -167,6 +167,7 @@ def create_file_list(url):
     return url_lst
 
 def main(args):
+    global url_prefix
 
     url= "https://ejudge.ru/MW6Z8TtquR1gBORo/index.html"
     url_prefix=url[0:url.rfind('/')]
