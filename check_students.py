@@ -162,11 +162,15 @@ def create_file_list(url):
     url_lst=list()
     for file_line in f:
         file_line=file_line.decode('utf8')
-        index=file_line.find('List')
-        if index == -1:
-            continue
-        l=file_line.rfind("href=",0,index)
-        url_lst.append("%s" % (file_line[l+6:index-2]))
+        index = 0
+        while True:
+            new_index=file_line.find('List', index)
+            if new_index == -1:
+                break
+            index=new_index
+            l=file_line.rfind("href=",0,index)
+            url_lst.append("%s" % (file_line[l+6:index-2]))
+            index+=4
     f.close()
 
     return url_lst
@@ -196,8 +200,9 @@ def main(args):
 
     
     if num_args >= 4:
-        solution_distance = min(max(1,int(args[3])),100)
-    
+        #solution_distance = min(max(1,int(args[3])),100)
+        solution_distance = max(0,int(args[3]))
+
     print(" We run:\n  students_file_name='%s'\n  url='%s'\n  solution_distance=%d\n" % (
             students_file_name,
             url,
